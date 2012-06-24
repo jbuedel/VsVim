@@ -6,6 +6,7 @@
     <Version>1.3.0.0</Version>
     <Description xml:space="preserve">VIM emulation layer for Visual Studio</Description>
     <Locale>1033</Locale>
+    <InstalledByMsi>false</InstalledByMsi>
     <MoreInfoUrl>http://blogs.msdn.com/b/jaredpar</MoreInfoUrl>
     <License>License.rtf</License>
     <GettingStartedGuide>https://github.com/jaredpar/VsVim/wiki/Release-Notes</GettingStartedGuide>
@@ -25,7 +26,11 @@
     </SupportedProducts>
     <SupportedFrameworkRuntimeEdition MinVersion="4.0" MaxVersion="5.0" />
   </Identifier>
-  <References />
+  <References>
+    <Reference Id="Microsoft.VisualStudio.MPF" MinVersion="10.0">
+      <Name>Visual Studio MPF</Name>
+    </Reference>
+  </References>
   <Content>
     <MefComponent>|%CurrentProject%|</MefComponent>
     <MefComponent>|VimCore|</MefComponent>
@@ -33,5 +38,6 @@
     <MefComponent>|VsVimShared|</MefComponent>
     <MefComponent>|VsVimDev10|</MefComponent>
     <MefComponent>EditorUtils.dll</MefComponent>
+    <VsPackage>|%CurrentProject%;PkgdefProjectOutputGroup|</VsPackage>
   </Content>
 </Vsix>
