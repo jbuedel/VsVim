@@ -47,17 +47,22 @@ namespace VsVim.Implementation
             get { return TextBuffers.Select(x => GetTextViews(x)).SelectMany(x => x); }
         }
 
-        internal ITextView ActiveTextView
+        internal ITextView ActiveTextViewOptional
         {
             get
             {
                 IVsTextView vsTextView;
                 IWpfTextView textView = null;
-                ErrorHandler.ThrowOnFailure(_textManager.GetActiveView(0, null, out vsTextView));
-                textView = _vsAdapter.EditorAdapter.GetWpfTextView(vsTextView);
-                if (textView == null)
+                try
                 {
-                    throw new InvalidOperationException();
+                    ErrorHandler.ThrowOnFailure(_textManager.GetActiveView(0, null, out vsTextView));
+                    textView = _vsAdapter.EditorAdapter.GetWpfTextView(vsTextView);
+                }
+                catch
+                {
+                    // Both ThrowOnFailure and GetWpfTextView can throw an exception.  The latter will
+                    // throw even if a non-null value is passed into it 
+                    textView = null;
                 }
                 return textView;
             }
@@ -165,6 +170,10 @@ namespace VsVim.Implementation
                 return false;
             }
 
+            // It's possible for IVsWindowFrame elements to nest within each other.  When closing we want to 
+            // close the actual tab in the editor so get the top most item
+            vsWindowFrame = vsWindowFrame.GetTopMost();
+
             var value = __FRAMECLOSE.FRAMECLOSE_NoSave;
             return ErrorHandler.Succeeded(vsWindowFrame.CloseFrame((uint)value));
         }
@@ -246,7 +255,7 @@ namespace VsVim.Implementation
 
         ITextView ITextManager.ActiveTextViewOptional
         {
-            get { return ActiveTextView; }
+            get { return ActiveTextViewOptional; }
         }
 
         IEnumerable<ITextView> ITextManager.GetTextViews(ITextBuffer textBuffer)

@@ -1,47 +1,60 @@
-$script:scriptPath = split-path -parent $MyInvocation.MyCommand.Definition 
-$refPath = join-path $scriptPath "References"
-$coreDllList = @(   "Microsoft.VisualStudio.CoreUtility.dll",
-                "Microsoft.VisualStudio.Editor.dll",
-                "Microsoft.VisualStudio.Editor.Implementation.dll",
-                "Microsoft.VisualStudio.Language.Intellisense.dll",
-                "Microsoft.VisualStudio.Language.StandardClassification.dll",
-                "Microsoft.VisualStudio.Platform.VSEditor.dll",
-                "Microsoft.VisualStudio.Text.Data.dll",
-                "Microsoft.VisualStudio.Text.Logic.dll",
-                "Microsoft.VisualStudio.Text.UI.dll",
-                "Microsoft.VisualStudio.Text.UI.Wpf.dll" )
+$script:scriptPath = Split-Path -parent $MyInvocation.MyCommand.Definition 
+$refPath = Join-Path $scriptPath "References"
 
 function Get-ProgramFiles32() {
-    if ( test-path (join-path $env:WinDir "SysWow64") ) {
+    if (Test-Path (Join-Path $env:WinDir "SysWow64") ) {
         return ${env:ProgramFiles(x86)}
     }
     
     return $env:ProgramFiles
 }
 
-function CopyTo-References() {
-    param ( [string]$source = $(throw "Need a source") )
-    if ( -not (test-path $source)) {
-        write-error "Not found $source"
+function Ensure-Directory() {
+    param ( [string]$path )
+
+    if (-not (Test-Path $path)) {
+        mkdir $path | Out-Null
     }
+}
+
+function Copy-Specific() {
+    param ( [string]$basePath, [string]$destPath )
+
+    Ensure-Directory $destPath
+    $source = Join-Path $basePath "Microsoft.VisualStudio.Shell.ViewManager.dll"
+    copy $source $destPath
+}
+
+# Copy the shared COM DLLs to the References folder.  These DLLs don't change between
+# versions so they don't need a version specific sub-dir
+function Copy-Shared() {
+    param ( [string]$basePath )
+
+    $source = Join-Path $basePath "PrivateAssemblies\Microsoft.VisualStudio.Platform.VSEditor.Interop.dll"
     copy $source $refPath
 }
 
+Ensure-Directory $refPath
+
 $progPath = Get-ProgramFiles32
-$vsPath = join-path $progPath "Microsoft Visual Studio 10.0\Common7\ide\CommonExtensions\microsoft\Editor"
-foreach ( $dll in $coreDllList) {
-    $fullPath = join-Path $vsPath $dll
-    CopyTo-References $fullPath
+$dev10Path = Join-Path $progPath "Microsoft Visual Studio 10.0"
+if (Test-Path $dev10Path) {
+    Write-Host "Found Visual Studio 2010"
+
+    $basePath = Join-Path $dev10Path "Common7\Ide"
+    Copy-Shared $basePath
+    Copy-Specific $basePath (Join-Path $refPath "Vs2010")
 }
 
-$idePath= join-path $progPath "Microsoft Visual Studio 10.0\Common7\IDE"
-CopyTo-References (join-path $idePath "Microsoft.VisualStudio.Shell.ViewManager.dll")
+$dev11Path = Join-Path $progPath "Microsoft Visual Studio 11.0"
+if (Test-Path $dev11Path) {
+    Write-Host "Found Visual Studio 2012"
 
-$privPath = join-path $progPath "Microsoft Visual Studio 10.0\Common7\IDE\PrivateAssemblies"
-CopyTo-References (join-path $privPath "Microsoft.VisualStudio.Text.Internal.dll" )
-CopyTo-References (join-path $privPath "Microsoft.VisualStudio.Platform.VSEditor.Interop.dll" )
+    $basePath = Join-Path $dev11Path "Common7\Ide"
+    Copy-Specific $basePath (Join-Path $refPath "Vs2012")
 
-$fullPath = join-path $progPath "Reference Assemblies\Microsoft\FSharp\2.0\Runtime\v4.0\FSharp.Core.dll"
-CopyTo-References $fullPath
-
-
+    # If Dev10 isn't installed then use the COM references from Dev11
+    if (-not (Test-Path $dev10Path)) {
+        Copy-Shared $basePath
+    }
+}
