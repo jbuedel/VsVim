@@ -70,7 +70,7 @@ namespace VsVim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to My Tool Window.
+        ///   Looks up a localized string similar to VsVim.
         /// </summary>
         internal static string ToolWindowTitle {
             get {
