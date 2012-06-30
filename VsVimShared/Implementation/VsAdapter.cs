@@ -289,6 +289,14 @@ namespace VsVim.Implementation
             return false;
         }
 
+        /// <summary>
+        /// Any type which has the shims defined should have a default input handler associated with it 
+        /// </summary>
+        internal bool HasInputHandler(ITextView textView)
+        {
+            return EditorAdapter.GetViewAdapter(textView) != null;
+        }
+
         internal bool IsIncrementalSearchActive(ITextView textView)
         {
             var search = _incrementalSearchFactoryService.GetIncrementalSearch(textView);
@@ -385,6 +393,11 @@ namespace VsVim.Implementation
         Result<ITextBuffer> IVsAdapter.GetTextBufferForDocCookie(uint cookie)
         {
             return GetTextBufferForDocCookie(cookie);
+        }
+
+        bool IVsAdapter.HasInputHandler(ITextView textView)
+        {
+            return HasInputHandler(textView);
         }
 
         #endregion

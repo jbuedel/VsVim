@@ -8,9 +8,9 @@ namespace Vim.UI.Wpf.UnitTest
 {
     public class VimKeyProcessorTest : IDisposable
     {
+        protected MockRepository _factory;
         protected IntPtr _keyboardId;
         protected bool _mustUnloadLayout;
-        protected MockRepository _factory;
         protected Mock<IVimBuffer> _buffer;
         protected VimKeyProcessor _processor;
 

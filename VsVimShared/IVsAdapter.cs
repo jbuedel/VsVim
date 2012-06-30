@@ -56,22 +56,6 @@ namespace VsVim
         IEnumerable<IVsTextView> GetTextViews(ITextBuffer textBuffer);
 
         /// <summary>
-        /// Is the buffer in the middle of a Visual Studio incremental search
-        /// </summary>
-        bool IsIncrementalSearchActive(ITextView textView);
-
-        /// <summary>
-        /// Is this a Venus window
-        /// </summary>
-        bool IsVenusView(IVsTextView textView);
-
-        /// <summary>
-        /// Determine if this ITextBuffer is readonly.  This needs to mimic the behavior of 
-        /// the VsCodeWindowAdapter::IsReadOnly method.
-        /// </summary>
-        bool IsReadOnly(ITextBuffer textBuffer);
-
-        /// <summary>
         /// Get the IVsCodeWindowFrame instances currently open
         /// </summary>
         Result<List<IVsWindowFrame>> GetWindowFrames();
@@ -105,5 +89,29 @@ namespace VsVim
         Result<uint> GetDocCookie(ITextDocument textDocument);
 
         Result<ITextBuffer> GetTextBufferForDocCookie(uint cookie);
+
+        /// <summary>
+        /// Does this ITextView have a defined input handler?  Essentially is it hooked up
+        /// to an IOleCommandTarget chain which is responsible for turning key strokes into
+        /// edits
+        /// </summary>
+        bool HasInputHandler(ITextView textView);
+
+        /// <summary>
+        /// Is the buffer in the middle of a Visual Studio incremental search
+        /// </summary>
+        bool IsIncrementalSearchActive(ITextView textView);
+
+        /// <summary>
+        /// Is this a Venus window
+        /// </summary>
+        bool IsVenusView(IVsTextView textView);
+
+        /// <summary>
+        /// Determine if this ITextBuffer is readonly.  This needs to mimic the behavior of 
+        /// the VsCodeWindowAdapter::IsReadOnly method.
+        /// </summary>
+        bool IsReadOnly(ITextBuffer textBuffer);
+
     }
 }

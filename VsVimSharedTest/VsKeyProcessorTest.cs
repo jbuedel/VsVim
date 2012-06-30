@@ -2,11 +2,11 @@
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Moq;
-using Xunit;
 using Vim;
 using Vim.UI.Wpf.UnitTest;
 using Vim.UnitTest.Mock;
 using VsVim.Implementation;
+using Xunit;
 
 namespace VsVim.UnitTest
 {
@@ -17,6 +17,7 @@ namespace VsVim.UnitTest
         private IVimBufferCoordinator _bufferCoordinator;
         private VsKeyProcessor _vsProcessor;
         private MockKeyboardDevice _device;
+        private bool _hasInputHandler = true;
 
         protected override void Setup(string languageId)
         {
@@ -25,6 +26,7 @@ namespace VsVim.UnitTest
             _textBuffer = _factory.Create<ITextBuffer>();
             _vsAdapter = _factory.Create<IVsAdapter>();
             _vsAdapter.Setup(x => x.IsIncrementalSearchActive(It.IsAny<ITextView>())).Returns(false);
+            _vsAdapter.Setup(x => x.HasInputHandler(It.IsAny<ITextView>())).Returns(() => _hasInputHandler);
             _buffer = MockObjectFactory.CreateVimBuffer(_textBuffer.Object);
             _buffer.Setup(x => x.CanProcess(It.IsAny<KeyInput>())).Returns(true);
             _buffer.Setup(x => x.Process(It.IsAny<KeyInput>())).Returns(ProcessResult.NewHandled(ModeSwitch.NoSwitch));
@@ -119,6 +121,32 @@ namespace VsVim.UnitTest
             _buffer.SetupGet(x => x.ModeKind).Returns(ModeKind.Normal).Verifiable();
             VerifyHandle(Key.E, ModifierKeys.Control);
             _factory.Verify();
+        }
+
+        /// <summary>
+        /// In insert mode we should let input go to the input handler so it can display items like
+        /// intellisense.
+        /// </summary>
+        [Fact]
+        public void KeyDown_IgnoreInsertModeInput()
+        {
+            _buffer.SetupGet(x => x.ModeKind).Returns(ModeKind.Insert);
+            _buffer.Setup(x => x.CanProcessAsCommand(It.IsAny<KeyInput>())).Returns(false).Verifiable();
+            VerifyNotHandle(Key.A);
+        }
+
+        /// <summary>
+        /// If there is no default handler then we need to handle the input ourselves.  This occurs when
+        /// working with an ITextView that has no IOleCommandTarget
+        /// </summary>
+        [Fact]
+        public void KeyDown_HandleInsertInputWhenNoHandler()
+        {
+            _hasInputHandler = false;
+            Setup(null);
+            _buffer.SetupGet(x => x.ModeKind).Returns(ModeKind.Insert);
+            _buffer.Setup(x => x.CanProcessAsCommand(It.IsAny<KeyInput>())).Returns(false).Verifiable();
+            VerifyHandle(Key.A);
         }
     }
 }

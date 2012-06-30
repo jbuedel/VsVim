@@ -14,12 +14,14 @@ namespace VsVim
     {
         private readonly IVsAdapter _adapter;
         private readonly IVimBufferCoordinator _bufferCoordinator;
+        private readonly bool hasInputHandler;
 
         internal VsKeyProcessor(IVsAdapter adapter, IVimBufferCoordinator bufferCoordinator)
             : base(bufferCoordinator.VimBuffer)
         {
             _adapter = adapter;
             _bufferCoordinator = bufferCoordinator;
+            hasInputHandler = adapter.HasInputHandler(VimBuffer.TextView);
         }
 
         /// <summary>
@@ -44,7 +46,9 @@ namespace VsVim
             // be routed through Visual Studio and IOleCommandTarget in order to get intellisense
             // properly hooked up.  Not handling it in this KeyProcessor will eventually cause
             // it to be routed through IOleCommandTarget if it's input
-            if (VimBuffer.ModeKind.IsAnyInsert() && !VimBuffer.CanProcessAsCommand(keyInput))
+            if (hasInputHandler &&
+                VimBuffer.ModeKind.IsAnyInsert() && 
+                !VimBuffer.CanProcessAsCommand(keyInput))
             {
                 return false;
             }
