@@ -90,24 +90,6 @@ namespace Vim.UI.Wpf.UnitTest
         }
 
         /// <summary>
-        /// If alpha characters can be definitively mapped then handle them here
-        /// </summary>
-        [Fact]
-        public void KeyDown_Alpha()
-        {
-            _buffer.Setup(x => x.CanProcess(It.IsAny<KeyInput>())).Returns(true).Verifiable();
-            _buffer.Setup(x => x.Process(It.IsAny<KeyInput>())).Returns(ProcessResult.NewHandled(ModeSwitch.NoSwitch)).Verifiable();
-
-            for (var i = 0; i < 26; i++)
-            {
-                var key = (Key)((int)Key.A + i);
-                var arg = CreateKeyEventArgs(key);
-                _processor.KeyDown(arg);
-                Assert.True(arg.Handled);
-            }
-        }
-
-        /// <summary>
         /// Do handle non printable characters here
         /// </summary>
         [Fact]
@@ -148,9 +130,11 @@ namespace Vim.UI.Wpf.UnitTest
 
         /// <summary>
         /// Do pass Control and Alt modified input onto the IVimBuffer
+        ///
+        /// TODO: This test is disabled until we work out ALT keyboard input
         /// </summary>
-        [Fact]
-        public void KeyDown6()
+        // [Fact]
+        public void KeyDown_ControlPlusAlt()
         {
             _buffer.Setup(x => x.CanProcess(It.IsAny<KeyInput>())).Returns(false).Verifiable();
 
@@ -170,7 +154,8 @@ namespace Vim.UI.Wpf.UnitTest
         }
 
         /// <summary>
-        /// Control + char will end up as Control text and should be passed onto TextInput
+        /// Control + char will end up as Control text and should be passed onto TextInput.  It shouldn't be 
+        /// handled in KeyDown
         /// </summary>
         [Fact]
         public void KeyDown_PassControlLetterToBuffer()
@@ -180,14 +165,16 @@ namespace Vim.UI.Wpf.UnitTest
                 var key = (Key)((int)Key.A + i);
                 var arg = CreateKeyEventArgs(key, ModifierKeys.Control);
                 _processor.KeyDown(arg);
-                Assert.True(arg.Handled);
+                Assert.False(arg.Handled);
             }
         }
 
         /// <summary>
         /// Need to handle 'Alt+char' in KeyDown since it won't end up as TextInput.
+        ///
+        /// TODO: disabled until we deal with alt input.  Likely uses SystemText
         /// </summary>
-        [Fact]
+        // [Fact]
         public void KeyDown_PassAltLetterToBuffer()
         {
             _buffer.Setup(x => x.CanProcess(It.IsAny<KeyInput>())).Returns(true).Verifiable();
