@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using EditorUtils;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
@@ -11,7 +12,6 @@ using Microsoft.VisualStudio.Utilities;
 using Vim;
 using Vim.Extensions;
 using Vim.UI.Wpf;
-using EditorUtils;
 
 namespace VsVim
 {
@@ -32,6 +32,7 @@ namespace VsVim
         private sealed class BufferData
         {
             internal int TabStop;
+            internal int ShiftWidth;
             internal bool ExpandTab;
             internal bool Number;
             internal VsCommandTarget VsCommandTarget;
@@ -46,6 +47,7 @@ namespace VsVim
         private readonly IVim _vim;
         private readonly IVsEditorAdaptersFactoryService _adaptersFactory;
         private readonly Dictionary<IVimBuffer, BufferData> _bufferMap = new Dictionary<IVimBuffer, BufferData>();
+        private readonly ITextManager _textManager;
         private readonly IVsAdapter _adapter;
         private readonly IProtectedOperations _protectedOperations;
         private readonly IVimBufferCoordinatorFactory _bufferCoordinatorFactory;
@@ -62,6 +64,7 @@ namespace VsVim
             IVsEditorAdaptersFactoryService adaptersFactory,
             IResharperUtil resharperUtil,
             IDisplayWindowBrokerFactoryService displayWindowBrokerFactoryService,
+            ITextManager textManager,
             IVsAdapter adapter,
             [EditorUtilsImport] IProtectedOperations protectedOperations,
             IVimBufferCoordinatorFactory bufferCoordinatorFactory,
@@ -75,6 +78,7 @@ namespace VsVim
             _resharperUtil = resharperUtil;
             _displayWindowBrokerFactoryServcie = displayWindowBrokerFactoryService;
             _adaptersFactory = adaptersFactory;
+            _textManager = textManager;
             _adapter = adapter;
             _protectedOperations = protectedOperations;
             _bufferCoordinatorFactory = bufferCoordinatorFactory;
@@ -116,6 +120,7 @@ namespace VsVim
             var bufferData = new BufferData
             {
                 TabStop = buffer.LocalSettings.TabStop,
+                ShiftWidth = buffer.LocalSettings.ShiftWidth,
                 ExpandTab = buffer.LocalSettings.ExpandTab,
                 Number = buffer.LocalSettings.Number
             };
@@ -142,7 +147,7 @@ namespace VsVim
         {
             // Get the ITextView created.  Shouldn't ever be null unless a non-standard Visual Studio
             // component is calling this function
-            var textView = _adaptersFactory.GetWpfTextView(vsView);
+            var textView = _adaptersFactory.GetWpfTextViewNoThrow(vsView);
             if (textView == null)
             {
                 return;
@@ -173,6 +178,7 @@ namespace VsVim
                 if (!_vim.GlobalSettings.UseEditorSettings)
                 {
                     buffer.LocalSettings.TabStop = bufferData.TabStop;
+                    buffer.LocalSettings.ShiftWidth = bufferData.ShiftWidth;
                     buffer.LocalSettings.ExpandTab = bufferData.ExpandTab;
                     buffer.LocalSettings.Number = bufferData.Number;
                 }
@@ -185,7 +191,7 @@ namespace VsVim
 
             var broker = _displayWindowBrokerFactoryServcie.CreateDisplayWindowBroker(textView);
             var bufferCoordinator = _bufferCoordinatorFactory.GetVimBufferCoordinator(buffer);
-            var result = VsCommandTarget.Create(bufferCoordinator, vsView, _adapter, broker, _resharperUtil, _keyUtil);
+            var result = VsCommandTarget.Create(bufferCoordinator, vsView, _textManager, _adapter, broker, _resharperUtil, _keyUtil);
             if (result.IsSuccess)
             {
                 // Store the value for debugging

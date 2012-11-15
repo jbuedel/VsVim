@@ -37,8 +37,10 @@ namespace Vim.UnitTest
         private IFoldManagerFactory _foldManagerFactory;
         private IBufferTrackingService _bufferTrackingService;
         private IBulkOperations _bulkOperations;
-        private IClipboardDevice _clipboardDevice;
         private IKeyUtil _keyUtil;
+        private IKeyboardDevice _keyboardDevice;
+        private IMouseDevice _mouseDevice;
+        private IClipboardDevice _clipboardDevice;
 
         public IVim Vim
         {
@@ -95,6 +97,16 @@ namespace Vim.UnitTest
             get { return _clipboardDevice; }
         }
 
+        public IMouseDevice MouseDevice
+        {
+            get { return _mouseDevice; }
+        }
+
+        public IKeyboardDevice KeyboardDevice
+        {
+            get { return _keyboardDevice; }
+        }
+
         public virtual bool TrackTextViewHistory
         {
             get { return true; }
@@ -125,9 +137,11 @@ namespace Vim.UnitTest
             _bufferTrackingService = CompositionContainer.GetExportedValue<IBufferTrackingService>();
             _foldManagerFactory = CompositionContainer.GetExportedValue<IFoldManagerFactory>();
             _bulkOperations = CompositionContainer.GetExportedValue<IBulkOperations>();
-            _clipboardDevice = CompositionContainer.GetExportedValue<IClipboardDevice>();
             _keyUtil = CompositionContainer.GetExportedValue<IKeyUtil>();
 
+            _keyboardDevice = CompositionContainer.GetExportedValue<IKeyboardDevice>();
+            _mouseDevice = CompositionContainer.GetExportedValue<IMouseDevice>();
+            _clipboardDevice = CompositionContainer.GetExportedValue<IClipboardDevice>();
             _clipboardDevice.Text = String.Empty;
 
             // One setting we do differ on for a default is 'timeout'.  We don't want them interferring
@@ -333,7 +347,7 @@ namespace Vim.UnitTest
             list.Add(new TypeCatalog(
                 typeof(TestableClipboardDevice),
                 typeof(TestableKeyboardDevice),
-                typeof(MouseDevice),
+                typeof(TestableMouseDevice),
                 typeof(global::Vim.UnitTest.Exports.VimHost),
                 typeof(VimErrorDetector),
                 typeof(DisplayWindowBrokerFactoryService),
