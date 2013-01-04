@@ -110,6 +110,16 @@ module SnapshotUtil =
         else
             None
 
+    /// Try and get the point on the specified line
+    let TryGetPointInLine snapshot lineNumber column = 
+        match TryGetLine snapshot lineNumber with
+        | None -> None
+        | Some snapshotLine ->
+            if column >= snapshotLine.Length then
+                None
+            else
+                snapshotLine.Start.Add(column) |> Some
+
     /// Get the point from the specified position
     let GetPoint (snapshot : ITextSnapshot) position = SnapshotPoint(snapshot, position)
 
@@ -306,7 +316,7 @@ module SnapshotSpanUtil =
         let endPoint = col |> Seq.map (fun span -> span.End) |> Seq.maxBy (fun p -> p.Position)
         SnapshotSpan(startPoint, endPoint)
 
-    /// Create an empty span at the given point
+    /// Create an span going from startPoint to endpoint
     let Create (startPoint:SnapshotPoint) (endPoint:SnapshotPoint) = SnapshotSpan(startPoint,endPoint)
 
     /// Create an empty span at the given point
@@ -368,7 +378,6 @@ module VirtualSnapshotSpanUtil =
 /// Contains operations to help fudge the Editor APIs to be more F# friendly.  Does not
 /// include any Vim specific logic
 module SnapshotLineUtil =
-
     /// ITextSnapshot the ITextSnapshotLine is associated with
     let GetSnapshot (line : ITextSnapshotLine) = line.Snapshot
 
@@ -801,7 +810,7 @@ module SnapshotPointUtil =
 
     /// Get the points on the containing line starting at the passed in value.  If the passed in start
     /// point is inside the line break, an empty sequence will be returned
-    let GetPointsOnContainingLineFrom startPoint = 
+    let GetPointsOnLineForward startPoint = 
         if IsInsideLineBreak startPoint then Seq.empty
         else 
             let line = GetContainingLine startPoint
@@ -809,7 +818,7 @@ module SnapshotPointUtil =
 
     /// Get the points on the containing line start starting at the passed in value in reverse order.  If the
     /// passed in point is inside the line break then the points of the entire line will be returned
-    let GetPointsOnContainingLineBackwardsFrom startPoint = 
+    let GetPointsOnLineBackward startPoint = 
         let line = GetContainingLine startPoint
         let span = 
             if IsInsideLineBreak startPoint then SnapshotLineUtil.GetExtent line 

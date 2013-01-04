@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Windows;
+using System.Windows.Input;
 using EditorUtils;
 using Microsoft.FSharp.Core;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Xunit;
 using Vim.Extensions;
 using Vim.Interpreter;
-using Size=System.Windows.Size;
-using System.Windows.Input;
-using System.Windows;
-using System.Reflection;
+using Xunit;
 using Expression = Vim.Interpreter.Expression;
+using Size = System.Windows.Size;
 
 namespace Vim.UnitTest
 {
@@ -649,22 +649,22 @@ namespace Vim.UnitTest
 
         #region SettingValue
 
-        public static SettingValue.StringValue AsStringValue(this SettingValue value)
+        public static SettingValue.String AsString(this SettingValue value)
         {
-            Assert.True(value.IsStringValue);
-            return (SettingValue.StringValue)value;
+            Assert.True(value.IsString);
+            return (SettingValue.String)value;
         }
 
-        public static SettingValue.ToggleValue AsToggleValue(this SettingValue value)
+        public static SettingValue.Toggle AsToggle(this SettingValue value)
         {
-            Assert.True(value.IsToggleValue);
-            return (SettingValue.ToggleValue)value;
+            Assert.True(value.IsToggle);
+            return (SettingValue.Toggle)value;
         }
 
-        public static SettingValue.NumberValue AsNumberValue(this SettingValue value)
+        public static SettingValue.Number AsNumber(this SettingValue value)
         {
-            Assert.True(value.IsNumberValue);
-            return (SettingValue.NumberValue)value;
+            Assert.True(value.IsNumber);
+            return (SettingValue.Number)value;
         }
 
         #endregion
@@ -1273,7 +1273,7 @@ namespace Vim.UnitTest
             inputManager = inputManager ?? InputManager.Current;
             var textComposition = new TextComposition(inputManager, frameworkElement, text);
             if (text.Length == 1)
-            { 
+            {
                 var c = text[0];
                 if (Char.IsControl(c))
                 {
@@ -1302,6 +1302,18 @@ namespace Vim.UnitTest
             var args = new TextCompositionEventArgs(inputDevice, textComposition);
             args.RoutedEvent = UIElement.TextInputEvent;
             return args;
+        }
+
+        #endregion
+
+        #region HistoryList
+
+        public static void AddRange(this HistoryList historyList, params string[] values)
+        {
+            foreach (var cur in values)
+            {
+                historyList.Add(cur);
+            }
         }
 
         #endregion

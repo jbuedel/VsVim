@@ -166,14 +166,15 @@ namespace Vim.UnitTest
             }
             _vimErrorDetector.Clear();
 
-            _vim.VimData.SearchHistory.Clear();
-            _vim.VimData.CommandHistory.Clear();
+            _vim.VimData.SearchHistory.Reset();
+            _vim.VimData.CommandHistory.Reset();
             _vim.VimData.LastCommand = FSharpOption<StoredCommand>.None;
             _vim.VimData.LastShellCommand = FSharpOption<string>.None;
 
             _vim.KeyMap.ClearAll();
             _vim.MarkMap.ClearGlobalMarks();
             _vim.CloseAllVimBuffers();
+            _vim.IsDisabled = false;
 
             // Reset all of the global settings back to their default values.   Adds quite
             // a bit of sanity to the test bed

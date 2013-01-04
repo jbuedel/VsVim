@@ -54,6 +54,8 @@
     <Compile Include="OperationKind.fs" />
     <Compile Include="Mark.fs" />
     <Compile Include="Register.fs" />
+    <Compile Include="VimSettingsInterface.fs" />
+    <Compile Include="ColumnWiseUtil.fs" />
     <Compile Include="CoreInterfaces.fs" />
     <Compile Include="InternalInterfaces.fs" />
     <Compile Include="CountCapture.fs" />
@@ -146,7 +148,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="EditorUtils">
-      <HintPath>..\packages\EditorUtils.1.0.0.7\lib\net40\EditorUtils.dll</HintPath>
+      <HintPath>..\packages\EditorUtils.1.0.0.8\lib\net40\EditorUtils.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FSharp.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />

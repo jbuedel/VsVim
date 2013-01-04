@@ -53,7 +53,6 @@ namespace Vim.UnitTest
             _globalSettings.SetupGet(x => x.IsVirtualEditOneMore).Returns(false);
             _globalSettings.SetupGet(x => x.SelectionKind).Returns(SelectionKind.Inclusive);
             _globalSettings.SetupGet(x => x.UseEditorIndent).Returns(false);
-            _globalSettings.SetupGet(x => x.UseEditorSettings).Returns(false);
             _globalSettings.SetupGet(x => x.VirtualEdit).Returns(String.Empty);
             _globalSettings.SetupGet(x => x.WrapScan).Returns(true);
             _searchService = new SearchService(TextSearchService, _globalSettings.Object);
@@ -178,6 +177,7 @@ namespace Vim.UnitTest
             Assert.Equal("bear", _textView.GetLine(0).GetText());
             Assert.Equal(OperationKind.LineWise, UnnamedRegister.OperationKind);
         }
+
 
         /// <summary>
         /// Verify the deleting of lines where the count causes the deletion to cross 
@@ -323,6 +323,27 @@ namespace Vim.UnitTest
             Create("\thello world");
             _localSettings.SetupGet(x => x.TabStop).Returns(4);
             Assert.Equal(5, _operationsRaw.GetSpacesToColumn(_textBuffer.GetLine(0), 2));
+        }
+
+        /// <summary>
+        /// Wide characters count double
+        /// </summary>
+        [Fact]
+        public void GetSpacesToColumn_WideChars()
+        {
+            Create("あいうえお");
+            Assert.Equal(10, _operationsRaw.GetSpacesToColumn(_textBuffer.GetLine(0), 5));
+        }
+
+        /// <summary>
+        /// Non spacing characters are not taken into account
+        /// </summary>
+        [Fact]
+        public void GetSpacesToColumn_NonSpacingChars()
+        {
+            // h̸ello̊​w̵orld
+            Create("h\u0338ello\u030A\u200bw\u0335orld");
+            Assert.Equal(10, _operationsRaw.GetSpacesToColumn(_textBuffer.GetLine(0), 14));
         }
 
         /// <summary>
@@ -799,7 +820,6 @@ namespace Vim.UnitTest
         public void ShiftLineRangeRight_NoExpandTab()
         {
             Create("cat", "dog");
-            _globalSettings.SetupGet(x => x.UseEditorSettings).Returns(false);
             _localSettings.SetupGet(x => x.ShiftWidth).Returns(4);
             _localSettings.SetupGet(x => x.ExpandTab).Returns(false);
             _operations.ShiftLineRangeRight(1);
@@ -810,7 +830,6 @@ namespace Vim.UnitTest
         public void ShiftLineRangeRight_NoExpandTabKeepSpacesWhenFewerThanTabStop()
         {
             Create("cat", "dog");
-            _globalSettings.SetupGet(x => x.UseEditorSettings).Returns(false);
             _localSettings.SetupGet(x => x.ShiftWidth).Returns(2);
             _localSettings.SetupGet(x => x.TabStop).Returns(4);
             _localSettings.SetupGet(x => x.ExpandTab).Returns(false);
@@ -822,7 +841,6 @@ namespace Vim.UnitTest
         public void ShiftLineRangeRight_SpacesStartUsingTabs()
         {
             Create("  cat", "dog");
-            _globalSettings.SetupGet(x => x.UseEditorSettings).Returns(false);
             _localSettings.SetupGet(x => x.ExpandTab).Returns(false);
             _localSettings.SetupGet(x => x.TabStop).Returns(2);
             _operations.ShiftLineRangeRight(1);
